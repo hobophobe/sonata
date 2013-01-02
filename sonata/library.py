@@ -231,15 +231,8 @@ class Library(object):
         self.libraryposition = {}
         self.libraryselectedpath = {}
         self.library_browse(root=SongRecord(path="/"))
-        try:
-            if len(self.librarydata) > 0:
-                first = Gtk.TreePath.new_first()
-                to = Gtk.TreePath.new()
-                to.append_index(len(self.librarydata) - 1)
-                self.library_selection.unselect_range(first, to)
-        except Exception as e:
-            # XXX import logger here in the future
-            raise e
+        if len(self.librarydata) > 0:
+            self.library_selection.unselect_all()
         GLib.idle_add(self.library.scroll_to_point, 0, 0)
 
     def view_caches_reset(self):
@@ -342,7 +335,9 @@ class Library(object):
             self.save_timeout = GLib.timeout_add(5000, self.settings_save)
 
         self.config.wd = root
+        self.artwork.library_artwork_pause()
         self.library.freeze_child_notify()
+
         self.librarydata.clear()
 
         # Populate treeview with data:
@@ -393,6 +388,7 @@ class Library(object):
             self.librarydata.append(path)
 
         self.library.thaw_child_notify()
+        self.artwork.library_artwork_resume()
 
         # Scroll back to set view for current dir:
         self.library.realize()
@@ -944,10 +940,7 @@ class Library(object):
                                  prev_selection_parent):
         # Unselect everything:
         if len(self.librarydata) > 0:
-            first = Gtk.TreePath.new_first()
-            to = Gtk.TreePath.new()
-            to.append_index(len(self.librarydata) - 1)
-            self.library_selection.unselect_range(first, to)
+            self.library_selection.unselect_all()
         # Now attempt to retain the selection from before the update:
         for value in prev_selection:
             for row in self.librarydata:

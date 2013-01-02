@@ -131,6 +131,13 @@ class Artwork(object):
         thread.daemon = True
         thread.start()
 
+    def library_artwork_pause(self):
+        self.lib_art_cond.acquire()
+
+    def library_artwork_resume(self):
+        self.lib_art_cond.notifyAll()
+        self.lib_art_cond.release()
+
     def library_artwork_update(self, model, start_row, end_row, albumpb):
         self.albumpb = albumpb
 
@@ -173,7 +180,6 @@ class Artwork(object):
             else:
                 i = None
 
-            # FIXME this can segfault (on iter_is_valid)
             if i is not None and self.lib_model.iter_is_valid(i):
 
                 if data.artist is None or data.album is None:
